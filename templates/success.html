@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Registration Successful</title>
+</head>
+<body>
+    <h1>Registration Successful!</h1>
+    <p>Your account has been created successfully.</p>
+    <a href="/register">Register another account</a>
+    
+    <form action="{{ url_for('logout') }}" method="POST">
+        <button type="submit">Logout</button>
+    </form>
+</body>
+</html>
