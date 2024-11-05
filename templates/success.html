@@ -4,12 +4,9 @@
     <title>Registration Successful</title>
 </head>
 <body>
-    <h1>Registration Successful!</h1>
-    <p>Your account has been created successfully.</p>
-    <a href="/register">Register another account</a>
-    
-    <form action="{{ url_for('logout') }}" method="POST">
-        <button type="submit">Logout</button>
-    </form>
+    <h1>Реєстрація успішна!</h1>
+    <p>Ваш акаунт створено успішно.</p>
+    <!-- Кнопка для переходу на головну сторінку -->
+    <a href="{{ url_for('home') }}">Перейти на головну сторінку</a>
 </body>
 </html>
