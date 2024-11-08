@@ -3,7 +3,6 @@
 <head>
     <title>Register</title>
     <style>
-       
         .modal {
             display: none; /* Приховуємо модальне вікно за замовчуванням */
             position: fixed;
@@ -64,7 +63,7 @@
         <button type="submit">Зареєструватися</button>
     </form>
 
-    <!-- Модальне вікно -->
+    <!-- Модальне вікно для успішної реєстрації -->
     <div id="successModal" class="modal">
         <div class="modal-content">
             <h1>Реєстрація успішна!</h1>
@@ -74,15 +73,35 @@
         </div>
     </div>
 
+    <!-- Модальне вікно для помилок -->
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <h1>Помилка!</h1>
+            <p id="error-message">Помилка реєстрації. Спробуйте ще раз.</p>
+            <button class="close-btn" onclick="closeErrorModal()">Закрити</button>
+        </div>
+    </div>
+
     <script>
-        // Функція для показу модального вікна
+        // Функція для показу модального вікна успішної реєстрації
         function showModal() {
             document.getElementById('successModal').style.display = 'block';
+        }
+
+        // Функція для показу модального вікна помилок
+        function showErrorModal(message) {
+            document.getElementById('error-message').innerText = message;
+            document.getElementById('errorModal').style.display = 'block';
         }
 
         // Функція для закриття модального вікна
         function closeModal() {
             document.getElementById('successModal').style.display = 'none';
+        }
+
+        // Функція для закриття модального вікна помилок
+        function closeErrorModal() {
+            document.getElementById('errorModal').style.display = 'none';
         }
 
         // Відправка форми через AJAX
@@ -98,7 +117,8 @@
             if (response.ok) {
                 showModal(); // Показуємо модальне вікно при успішній реєстрації
             } else {
-                alert('Помилка реєстрації. Спробуйте ще раз.');
+                const errorText = await response.text();
+                showErrorModal(errorText); // Показуємо модальне вікно з повідомленням про помилку
             }
         };
     </script>
