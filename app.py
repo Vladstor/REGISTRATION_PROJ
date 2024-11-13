@@ -1,8 +1,11 @@
-from flask import Flask, render_template, redirect, request, url_for
+from flask import Flask, render_template, redirect, request, url_for, session, flash
 from models import db, User
-from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import check_password_hash
+import os
+
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
 
 # Налаштування бази даних
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///user.db'
@@ -10,8 +13,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
-@app.route('/register', methods=['GET', 'POST'])
-def register(): 
+@app.route('/signup', methods=['GET', 'POST'])
+def signup(): 
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -19,25 +22,47 @@ def register():
         username = request.form['username']
 
         # Перевірка наявності користувачів
-        existing_user_email = User.query.filter_by(email=email).first()
+        existing_user = User.query.filter((User.email == email) | (User.username == username)).first()
+        if existing_user:
+            flash("Користувач з таким email або ім'ям вже існує")
+            return redirect(url_for('signup'))
+        
         existing_user_phone = User.query.filter_by(phone=phone).first()
-        existing_user_username = User.query.filter_by(username=username).first()
-
-        if existing_user_email:
-            return "Користувач з таким email вже існує", 400
         if existing_user_phone:
-            return "Користувач з таким номером телефону вже існує", 400
-        if existing_user_username:
-            return "Користувач з таким нікнеймом вже існує", 400
+            return "Некоректний номер телефону", 400
+
+        
+        
+        
 
         # Додавання нового користувача
-        user = User(email=email, password=password, phone=phone, username=username)
+        user = User(email=email, phone=phone, username=username)
+        user.set_password(password)
         db.session.add(user)
         db.session.commit()
-
-        return redirect(url_for('success'))
+        flash("Реєстрація пройшла успішно, увійдіть в акаунт")
+        return redirect(url_for('login'))
     
-    return render_template('register.html')
+    
+    #return render_template('signup.html')
+
+# Авторизація користувача
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        # Перевірка наявності користувача
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password, password):
+            # Збереження інформації про авторизованого користувача в сесії
+            session['user_id'] = user.id
+            flash("Авторизація пройшла успішно!", "success")
+            return redirect(url_for('home'))
+        else:
+            flash("Невірний email або пароль. Спробуйте ще раз.", "danger")
+    return render_template('login.html')
 
 @app.route('/success')
 def success():
