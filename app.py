@@ -40,11 +40,11 @@ def signup():
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
-        flash("Реєстрація пройшла успішно, увійдіть в акаунт")
+        #flash("Реєстрація пройшла успішно, увійдіть в акаунт")\
         return redirect(url_for('login'))
     
     
-    #return render_template('signup.html')
+    return render_template('signup.html')
 
 # Авторизація користувача
 @app.route('/login', methods=['GET', 'POST'])
@@ -55,7 +55,7 @@ def login():
         
         # Перевірка наявності користувача
         user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password, password):
+        if user and check_password_hash(user.password_hash, password):
             # Збереження інформації про авторизованого користувача в сесії
             session['user_id'] = user.id
             flash("Авторизація пройшла успішно!", "success")
@@ -63,10 +63,6 @@ def login():
         else:
             flash("Невірний email або пароль. Спробуйте ще раз.", "danger")
     return render_template('login.html')
-
-@app.route('/success')
-def success():
-    return render_template('success.html')  
 
 # Тимчасова головна сторінка для майбутньої прив'язки
 @app.route('/home')
