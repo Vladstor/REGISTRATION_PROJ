@@ -1,34 +1,30 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
-from app.models import User, db
+from flask import Blueprint, request, jsonify, flash
+import logging
+from app.models import User
 
 bp = Blueprint('signup', __name__, url_prefix='/signup')
 
-@bp.route('/', methods=['GET', 'POST'])
+@bp.route('/', methods=['POST'])
 def signup():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        phone = request.form['phone']
-        username = request.form['username']
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        phone = data.get('phone')
+        username = data.get('username')
 
-        # Перевірка наявності користувача
-        existing_user = User.query.filter((User.email == email) | (User.username == username)).first()
+        if not email or not password or not phone or not username:
+            return jsonify({'error': 'All fields are required'}), 400
+        
+        existing_user = User.get_user_by_email(email)
         if existing_user:
-            flash("Користувач з таким email або ім'ям вже існує.")
-            return redirect(url_for('signup.signup'))
-        
-        # Перевірка телефону
-        existing_user_phone = User.query.filter_by(phone=phone).first()
-        if existing_user_phone:
-            flash("Некоректний номер телефону.")
-            return redirect(url_for('signup.signup'))
+            return jsonify({'error': "User with this email or username already exists."}), 400
 
-        # Додавання нового користувача
-        user = User(email=email, phone=phone, username=username)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        
-        flash("Реєстрація пройшла успішно! Увійдіть в акаунт.")
-        return redirect(url_for('login.login'))
-    return render_template('signup.html')
+        new_user = User(email=email, password=password, phone=phone, username=username)
+        new_user.save()
+
+        return jsonify({'message': "Registration successful! Please log in."}), 201
+
+    except Exception as e:
+        logging.error(f"Error occurred during registration: {e}")
+        return jsonify({'error': f'An error occurred. Please try again later. {str(e)}'}), 500
